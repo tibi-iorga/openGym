@@ -156,7 +156,7 @@ const P = {
   gauge: <><path d="M4.2 16.6a8 8 0 1 1 15.6 0" /><path d="m12 14.4 3.6-4.6" /><circle cx="12" cy="14.6" r="1.2" /></>,
   // don't count for progression, and a deload routine (pause is only for pausing)
   chartLineSlash: <><path d="M3.6 20.2V4.4M3.6 20.2h16.8M6.4 16.4l3.9-4.8 3.1 2.7 5.2-6.6" /><path d="M4.6 4.6 19.8 19.8" /></>,
-  // warm-up (flame is the streak only)
+  // warm-up
   sunrise: <path d="M3.6 17.4h16.8M7.6 17.4a4.4 4.4 0 0 1 8.8 0M12 6.4v2.4M5.4 10.2 7 11.8M18.6 10.2 17 11.8M8.4 20.4h7.2" />,
   plusCircle: <><circle cx="12" cy="12" r="8.2" /><path d="M12 8.2v7.6M8.2 12h7.6" /></>,
   // a timed set's clock (timer stays the rest timer)

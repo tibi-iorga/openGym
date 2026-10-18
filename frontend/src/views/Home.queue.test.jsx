@@ -56,7 +56,6 @@ const chips = () => [...host.querySelectorAll('.queue .chip')]
 const chipTexts = () => chips().map(c => c.textContent)
 const status = () => host.querySelector('.queue .queue-status')?.textContent
 const todayTitle = () => host.querySelector('.today-row .ttl')?.textContent
-const card = () => [...host.querySelectorAll('.card .muted.small')].map(e => e.textContent).find(x => x.includes('this week'))
 
 describe('Home — coach week progress row', () => {
   it('replaces the weekday dots with one chip per session, in slot order, and lights the first', () => {
@@ -192,25 +191,15 @@ describe('Home — coach week progress row', () => {
     expect(todayTitle()).toBe('Core')
   })
 
-  it('the streak card counts the coach sessions done, wherever in the calendar they fell', () => {
-    // Ran long: the queue applied ten days ago and D1 logged the day after — never in this
-    // calendar week, whichever weekday today is, so a calendar-week count would show 0 / 3.
-    const since = Date.now() - 10 * 86400000, start = since + 3600000
-    setS({ queue: queue({ since, startsOn: daysFromToday(-9) }), workouts: [{ ...logged('d1'), d: isoOf(new Date(start)), start, end: start + 3600000 }] })
-    mount()
-    expect(card()).toMatch(/^1 \/ 3 this week · 1 workout total$/)
-  })
-
-  it('the streak card counts your own day beside the coach week, planned and done', () => {
+  it('an own workout does not inflate coach-week progress', () => {
     const now = Date.now()
     const core = { id: 'w-own', d: todayISO(), start: now - 3600000, end: now, routineIds: ['own'], routineId: 'own', name: 'Core', entries: [] }
     setS({ week: { [new Date().getDay()]: ['own'] }, workouts: [logged('d1'), core] })
     mount()
-    expect(card()).toMatch(/^2 \/ 4 this week · 2 workouts total$/)
     expect(host.querySelectorAll('.queue .row .small')[1].textContent).toBe('1 / 3')
   })
 
-  it('a managed pass counts your own day beside it exactly as an external one does — ownership plays no part in the tally', () => {
+  it('an own workout does not inflate managed-rotation progress', () => {
     const now = Date.now()
     const core = { id: 'w-own', d: todayISO(), start: now - 3600000, end: now, routineIds: ['own'], routineId: 'own', name: 'Core', entries: [] }
     setS({
@@ -219,7 +208,6 @@ describe('Home — coach week progress row', () => {
       week: { [new Date().getDay()]: ['own'] }, workouts: [logged('d1'), core],
     })
     mount()
-    expect(card()).toMatch(/^2 \/ 4 this week · 2 workouts total$/)
     expect(host.querySelectorAll('.queue .row .small')[1].textContent).toBe('1 of 3 done this round.')
   })
 

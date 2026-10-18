@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { MONDAY, SUNDAY, weekStartOf, weekOrder, weekDayOffset, startOfWeek, weekKey, isoOf } from './format.js'
-import { streakWeeks } from './history.js'
 import { muscleBalanceWindow } from './muscles.js'
 import { effortWeeks } from './effort.js'
 
@@ -70,33 +69,6 @@ describe('weekKey', () => {
 
   it('does not collide across years', () => {
     expect(weekKey('2025-08-19', MONDAY)).not.toBe(weekKey('2026-08-19', MONDAY))
-  })
-})
-
-describe('the week streak counts the profile’s own weeks', () => {
-  // Two sessions on the Sunday and the Monday that straddle a Monday-first boundary. To a
-  // Monday profile that is a session in each of two consecutive weeks; to a Sunday profile
-  // both fall in the same week and there is only one.
-  const iso = d => isoOf(new Date(Date.now() - d * 86400000))
-  const sundayBack = () => {
-    // The most recent Sunday that is not today, so both dates are in the past.
-    const d = new Date()
-    d.setDate(d.getDate() - ((d.getDay() + 7) % 7 || 7))
-    return d
-  }
-
-  it('splits a Sun/Mon pair into two weeks for a Monday profile, one for a Sunday profile', () => {
-    const sun = sundayBack()
-    const mon = new Date(sun); mon.setDate(sun.getDate() + 1)
-    const workouts = [{ d: isoOf(sun) }, { d: isoOf(mon) }]
-    expect(weekKey(isoOf(sun), MONDAY)).not.toBe(weekKey(isoOf(mon), MONDAY))
-    expect(weekKey(isoOf(sun), SUNDAY)).toBe(weekKey(isoOf(mon), SUNDAY))
-    expect(streakWeeks({ workouts, weekStart: SUNDAY })).toBe(1)
-  })
-
-  it('is zero without workouts whatever the week start', () => {
-    expect(streakWeeks({ workouts: [], weekStart: SUNDAY })).toBe(0)
-    expect(iso(0)).toBe(isoOf(new Date()))
   })
 })
 

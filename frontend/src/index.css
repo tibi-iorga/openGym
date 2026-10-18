@@ -1690,6 +1690,7 @@ body.no-tabbar #timer.working{box-shadow:inset 0 var(--hair) 0 var(--acc),0 -10p
 
 /* --- stat tiles --- */
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tiles.stats-tiles{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .tile{background:var(--surface);border-radius:var(--r-card);padding:14px}
 .tile .l{
   color:var(--label-2);font-size:13px;font-weight:400;letter-spacing:-.004em;
