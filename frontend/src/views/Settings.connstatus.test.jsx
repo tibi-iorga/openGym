@@ -105,6 +105,15 @@ describe('Show connection status', () => {
   })
 })
 
+describe('Look & Home without gym check-in', () => {
+  it('does not offer the old switch, even for a profile that had it enabled', () => {
+    mocks.S.checkIn = true
+    mount()
+    expect(host.textContent).not.toContain('Gym check-in')
+    expect(host.textContent).toContain('Body weight')
+  })
+})
+
 describe('guest footers', () => {
   const footers = () => [...host.querySelectorAll('.sect-f')].map(f => f.textContent)
 

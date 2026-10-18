@@ -143,21 +143,3 @@ describe('editing a card in place', () => {
     expect(cards[1]).toMatchObject({ id: 'b', label: 'B renamed', value: 'rescanned', fmt: 'qrcode' })
   })
 })
-
-// The Settings switch. On by default; an older profile that predates the key must read as on
-// too, and off only hides the feature — the cards themselves survive the round trip.
-describe('checkIn switch', () => {
-  it('is on for a fresh profile', () => {
-    expect(useStore.getState().S.checkIn).toBe(true)
-  })
-
-  it('turning it off keeps the saved cards', () => {
-    useStore.getState().update(s => {
-      s.gymCards.push({ id: 'c1', label: 'FitZone', value: 'ABC123', fmt: 'qrcode' })
-      s.checkIn = false
-    }, false)
-    const S = useStore.getState().S
-    expect(S.checkIn).toBe(false)
-    expect(S.gymCards).toHaveLength(1)
-  })
-})

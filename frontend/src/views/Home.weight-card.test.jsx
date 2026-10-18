@@ -45,3 +45,12 @@ describe('Home body-weight card preference', () => {
     expect(weightHeading()).toBeFalsy()
   })
 })
+
+describe('Home without gym check-in', () => {
+  it('does not offer a gym membership check-in for existing profiles with it enabled', () => {
+    mountWith(true)
+    act(() => useStore.setState(s => ({ S: { ...s.S, checkIn: true } })))
+    expect(host.textContent).not.toContain('At the gym')
+    expect(host.textContent).not.toContain('Check in')
+  })
+})
