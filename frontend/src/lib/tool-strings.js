@@ -8,7 +8,6 @@ export const TOOL_STRINGS = Object.fromEntries([
   'Timer running',
   'Timer paused',
   'Browse the exercise library',
-  'One timer for sleds, boxing and more',
   'Work',
   'Rounds',
   'Play dings',

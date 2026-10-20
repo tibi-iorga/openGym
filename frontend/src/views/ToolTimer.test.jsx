@@ -50,6 +50,7 @@ it('uses three steppers, ignores legacy prep and interval settings, and saves ex
   expect(host.textContent).not.toContain('Get ready')
   expect(host.textContent).not.toContain('During work')
   expect(host.textContent).not.toContain('Keep this Chrome app open')
+  expect(host.textContent).not.toContain('One timer for sleds, boxing and more')
   expect(JSON.parse(localStorage.getItem('opengym_tool_timer_v1'))).toEqual({ rounds: 3, workSec: 90, restSec: 45, sound: true })
   act(() => button('Increase Time').click())
   expect(setting('Time').textContent).toContain('2:00')

@@ -2269,7 +2269,6 @@ export default {
   'Timer running': 'Timer läuft',
   'Timer paused': 'Timer pausiert',
   'Browse the exercise library': 'Übungsbibliothek durchsuchen',
-  'One timer for sleds, boxing and more': 'Ein Timer für Schlitten, Boxen und mehr',
   'Work': 'Belastung',
   'Rounds': 'Runden',
   'Play dings': 'Signaltöne abspielen',

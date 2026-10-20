@@ -106,8 +106,7 @@ export default function ToolTimer() {
 
   return <>
     <div className="hdr tool-header"><button className="iconbtn" onClick={() => nav('/tools')} aria-label={t('Tools')}><Icon name="chevronLeft" /></button>
-      <div style={{ flex: 1, marginInlineStart: 12 }}><h1>{t('Timer')}</h1>
-        {!running && !done && <div className="sub">{t('One timer for sleds, boxing and more')}</div>}</div></div>
+      <div style={{ flex: 1, marginInlineStart: 12 }}><h1>{t('Timer')}</h1></div></div>
 
     {running || done ? <section className={`tool-run is-${position?.kind || 'work'}`} aria-label={t('Timer')}>
       <div className="tool-run-main" role="timer">
