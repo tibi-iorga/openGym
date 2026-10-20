@@ -8,7 +8,7 @@ export default function Tools() {
   const nav = useNavigate()
   const [timer, setTimer] = useState(toolTimerSnapshot)
   useEffect(() => subscribeToolTimer(() => setTimer(toolTimerSnapshot())), [])
-  const subtitle = timer.state === 'playing' ? t('Timer running') : timer.state === 'paused' ? t('Timer paused') : t('Countdown, rounds and interval dings')
+  const subtitle = timer.state === 'playing' ? t('Timer running') : timer.state === 'paused' ? t('Timer paused') : t('Rounds, time, rest and dings')
   return <>
     <div className="hdr"><h1>{t('Tools')}</h1></div>
     <div className="sect-b">

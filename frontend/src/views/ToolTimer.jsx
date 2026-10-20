@@ -6,24 +6,26 @@ import { pauseToolTimer, resumeToolTimer, startToolTimer, stopToolTimer, subscri
 import Icon from '../components/Icon.jsx'
 import { Button } from '../components/ui.jsx'
 
-const DEFAULTS = { rounds: 1, workSec: 60, restSec: 0, prepareSec: 5, intervalSec: 0, sound: true }
+const DEFAULTS = { rounds: 1, workSec: 60, restSec: 0, sound: true }
 const SETTINGS_KEY = 'opengym_tool_timer_v1'
-const CADENCES = [0, 15, 30, 60]
 const clock = seconds => {
   const n = Math.max(0, Math.ceil(seconds))
   return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`
 }
 
 function readSettings() {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) } } catch { return DEFAULTS }
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY))
+    return Object.fromEntries(Object.entries(DEFAULTS).map(([key, fallback]) => [key, saved?.[key] ?? fallback]))
+  } catch { return DEFAULTS }
 }
 
-function DurationEditor({ label, seconds, minimum, onSave, onCancel }) {
+function DurationEditor({ label, seconds, minimum, maximum, onSave, onCancel }) {
   const [minutes, setMinutes] = useState(String(Math.floor(seconds / 60)))
   const [remainder, setRemainder] = useState(String(seconds % 60).padStart(2, '0'))
   const mins = Number(minutes)
   const secs = Number(remainder)
-  const valid = /^\d+$/.test(minutes) && /^\d+$/.test(remainder) && mins <= 120 && secs < 60 && mins * 60 + secs >= minimum
+  const valid = /^\d+$/.test(minutes) && /^\d+$/.test(remainder) && secs < 60 && mins * 60 + secs >= minimum && mins * 60 + secs <= maximum
   const save = () => { if (valid) onSave(mins * 60 + secs) }
   const keyDown = event => {
     if (event.key === 'Enter' && event.target.tagName === 'INPUT') save()
@@ -67,22 +69,40 @@ export default function ToolTimer() {
   let phases, invalid = ''
   try {
     phases = timerPhases(settings)
-    if (!Number.isSafeInteger(settings.intervalSec) || settings.intervalSec < 0 || settings.intervalSec > 7200) invalid = t('Enter a valid interval')
   } catch { invalid = t('Enter valid durations, up to two hours total') }
   const total = phases?.reduce((seconds, phase) => seconds + phase.seconds, 0) || 0
   const running = snapshot.state === 'playing' || snapshot.state === 'loading' || snapshot.state === 'paused'
   const done = snapshot.state === 'done'
   const position = snapshot.position
-  const phaseName = position?.kind === 'prepare' ? t('Get ready') : position?.kind === 'work' ? t('Work') : position?.kind === 'rest' ? t('Rest') : t('Done')
+  const phaseName = position?.kind === 'work' ? t('Work') : position?.kind === 'rest' ? t('Rest') : t('Done')
   const next = running ? snapshot.phases[position?.index + 1] : null
   const nextName = next?.kind === 'work' ? t('Work') : next?.kind === 'rest' ? t('Rest') : null
-  const durationRow = (key, label, minimum) => <div className="tool-setting" key={key}>
-    <button type="button" className="tool-setting-row" aria-expanded={editing === key} onClick={() => setEditing(editing === key ? null : key)}>
-      <span>{label}</span><strong>{clock(settings[key])}</strong><Icon name="chevronRight" />
-    </button>
-    {editing === key && <DurationEditor key={key} label={label} seconds={settings[key]} minimum={minimum}
-      onSave={value => { change(key, value); setEditing(null) }} onCancel={() => setEditing(null)} />}
-  </div>
+  const stepper = (key, label, step, minimum) => {
+    const value = settings[key]
+    const candidate = delta => Math.max(minimum, value + delta)
+    const allowed = delta => {
+      const next = candidate(delta)
+      if (next === value) return false
+      try { timerPhases({ ...settings, [key]: next }); return true } catch { return false }
+    }
+    const maximum = key === 'workSec'
+      ? Math.floor((7200 - (settings.rounds - 1) * settings.restSec) / settings.rounds)
+      : settings.rounds > 1 ? Math.floor((7200 - settings.rounds * settings.workSec) / (settings.rounds - 1)) : 7200
+    return <div className="tool-stepper" key={key}>
+      <div className="tool-stepper-label">{label}</div>
+      <div className="tool-stepper-controls">
+        <button type="button" className="tool-stepper-adjust" aria-label={`${t('Decrease')} ${label}`}
+          disabled={!allowed(-step)} onClick={() => change(key, candidate(-step))}>−</button>
+        {key === 'rounds' ? <strong className="tool-stepper-value">{value}</strong>
+          : <button type="button" className="tool-stepper-value" aria-label={`${label} ${clock(value)}`}
+            aria-expanded={editing === key} onClick={() => setEditing(editing === key ? null : key)}>{clock(value)}</button>}
+        <button type="button" className="tool-stepper-adjust" aria-label={`${t('Increase')} ${label}`}
+          disabled={!allowed(step)} onClick={() => change(key, candidate(step))}>+</button>
+      </div>
+      {editing === key && <DurationEditor key={key} label={label} seconds={value} minimum={minimum} maximum={maximum}
+        onSave={next => { change(key, next); setEditing(null) }} onCancel={() => setEditing(null)} />}
+    </div>
+  }
 
   return <>
     <div className="hdr tool-header"><button className="iconbtn" onClick={() => nav('/tools')} aria-label={t('Tools')}><Icon name="chevronLeft" /></button>
@@ -93,7 +113,7 @@ export default function ToolTimer() {
       <div className="tool-run-main" role="timer">
         <div className="tool-phase">{phaseName}</div>
         <div className="tool-digits">{clock(position?.remainingMs / 1000 || 0)}</div>
-        {running && position?.kind !== 'prepare' && settings.rounds > 1 && <div className="tool-round">{t('Round')} {position?.round} {t('of')} {settings.rounds}</div>}
+        {running && settings.rounds > 1 && <div className="tool-round">{t('Round')} {position?.round} {t('of')} {settings.rounds}</div>}
         {done && <div className="tool-round">{t('Timer complete')}</div>}
       </div>
       {nextName && <div className="tool-next"><span>{t('Up next')}</span><strong>{nextName} · {clock(next.seconds)}</strong></div>}
@@ -107,32 +127,15 @@ export default function ToolTimer() {
       </div>
     </section> : <section className="tool-setup" aria-label={t('Timer setup')}>
       <div className="tool-summary"><span>{t('Timer setup')}</span><strong>{clock(total)} {t('total')}</strong></div>
-      <div className="tool-setting-list">
-        {durationRow('workSec', t('Work'), 1)}
-        {durationRow('restSec', t('Rest'), 0)}
-        <label className="tool-setting-row tool-rounds-row"><span>{t('Rounds')}</span>
-          <input type="number" inputMode="numeric" min="1" max="99" value={settings.rounds} aria-label={t('Rounds')}
-            onChange={event => change('rounds', event.target.value === '' ? '' : Number(event.target.value))} /></label>
-        {durationRow('prepareSec', t('Get ready'), 0)}
+      <div className="tool-stepper-list">
+        {stepper('rounds', t('Rounds'), 1, 1)}
+        {stepper('workSec', t('Time'), 30, 1)}
+        {stepper('restSec', t('Rest'), 30, 0)}
       </div>
-      <p className="small dim tool-setup-help">{t('Rest is skipped after the final round')}</p>
-
-      <h4 className="sec">{t('Sound')}</h4>
       <div className="tool-setting-list">
         <label className="tool-setting-row tool-sound-row"><span><strong>{t('Play dings')}</strong><small>{t('At phase changes and finish')}</small></span>
           <input type="checkbox" checked={settings.sound} onChange={event => change('sound', event.target.checked)} /></label>
-        <label className="tool-setting-row tool-cadence-row"><span>{t('During work')}</span>
-          <select value={CADENCES.includes(settings.intervalSec) ? settings.intervalSec : 'custom'} disabled={!settings.sound}
-            onChange={event => change('intervalSec', event.target.value === 'custom' ? 45 : Number(event.target.value))}>
-            <option value="0">{t('Off')}</option><option value="15">{t('Every 15 seconds')}</option>
-            <option value="30">{t('Every 30 seconds')}</option><option value="60">{t('Every minute')}</option>
-            <option value="custom">{t('Custom interval')}</option>
-          </select></label>
-        {!CADENCES.includes(settings.intervalSec) && <label className="tool-setting-row tool-custom-row"><span>{t('Every N seconds')}</span>
-          <input type="number" inputMode="numeric" min="1" max="7200" value={settings.intervalSec} disabled={!settings.sound}
-            onChange={event => change('intervalSec', event.target.value === '' ? '' : Number(event.target.value))} /></label>}
       </div>
-      <p className="small dim tool-note">{t('Keep this Chrome app open. Lock-screen sound is best effort and may pause or interrupt other audio. Test your headphones before relying on dings.')}</p>
       {invalid && <p className="small tool-error" role="alert">{invalid}</p>}
       {editing === null && <div className="tool-start-dock"><Button variant="primary" icon="play" disabled={!!invalid}
         onClick={() => startToolTimer(settings)}>{t('Start')}</Button></div>}

@@ -5,19 +5,16 @@ const whole = (value, name, min) => {
   return value
 }
 
-export function timerPhases({ rounds, workSec, restSec = 0, prepareSec = 0 }) {
+export function timerPhases({ rounds, workSec, restSec = 0 }) {
   whole(rounds, 'rounds', 1)
   if (rounds > 99) throw new RangeError('rounds must be <= 99')
   whole(workSec, 'workSec', 1)
   whole(restSec, 'restSec', 0)
-  whole(prepareSec, 'prepareSec', 0)
-
-  if (prepareSec + rounds * workSec + (rounds - 1) * restSec > 7200) {
+  if (rounds * workSec + (rounds - 1) * restSec > 7200) {
     throw new RangeError('timer must be at most two hours')
   }
 
   const phases = []
-  if (prepareSec) phases.push({ kind: 'prepare', round: 0, seconds: prepareSec })
   for (let round = 1; round <= rounds; round++) {
     phases.push({ kind: 'work', round, seconds: workSec })
     if (restSec && round < rounds) phases.push({ kind: 'rest', round, seconds: restSec })

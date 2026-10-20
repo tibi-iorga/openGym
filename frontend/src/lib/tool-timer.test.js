@@ -13,10 +13,19 @@ describe('tool timer phases', () => {
     ])
   })
 
+  it('starts with the first work round and ignores a legacy preparation setting', () => {
+    expect(timerPhases({ rounds: 2, workSec: 60, restSec: 30, prepareSec: 5 })).toEqual([
+      { kind: 'work', round: 1, seconds: 60 },
+      { kind: 'rest', round: 1, seconds: 30 },
+      { kind: 'work', round: 2, seconds: 60 },
+    ])
+  })
+
   it('uses actual elapsed time at a boundary even if a screen tick was delayed', () => {
-    const phases = timerPhases({ rounds: 2, workSec: 30, restSec: 10, prepareSec: 5 })
-    expect(timerPosition(phases, 5_000)).toMatchObject({ kind: 'work', round: 1, remainingMs: 30_000 })
-    expect(timerPosition(phases, 47_000)).toMatchObject({ kind: 'work', round: 2, remainingMs: 28_000 })
+    const phases = timerPhases({ rounds: 2, workSec: 30, restSec: 10 })
+    expect(timerPosition(phases, 0)).toMatchObject({ kind: 'work', round: 1, remainingMs: 30_000 })
+    expect(timerPosition(phases, 30_000)).toMatchObject({ kind: 'rest', round: 1, remainingMs: 10_000 })
+    expect(timerPosition(phases, 42_000)).toMatchObject({ kind: 'work', round: 2, remainingMs: 28_000 })
     expect(timerPosition(phases, 90_000)).toMatchObject({ kind: 'done', remainingMs: 0 })
   })
 
@@ -29,23 +38,22 @@ describe('tool timer phases', () => {
   })
 
   it('places interval dings in work, with distinct phase and finish cues', () => {
-    const phases = timerPhases({ rounds: 2, workSec: 5, restSec: 3, prepareSec: 1 })
+    const phases = timerPhases({ rounds: 2, workSec: 5, restSec: 3 })
     expect(timerCues(phases, 2)).toEqual([
-      { second: 0, kind: 'prepare' },
-      { second: 1, kind: 'work' },
-      { second: 3, kind: 'interval' },
-      { second: 5, kind: 'interval' },
-      { second: 6, kind: 'rest' },
-      { second: 9, kind: 'work' },
-      { second: 11, kind: 'interval' },
-      { second: 13, kind: 'interval' },
-      { second: 14, kind: 'done' },
+      { second: 0, kind: 'work' },
+      { second: 2, kind: 'interval' },
+      { second: 4, kind: 'interval' },
+      { second: 5, kind: 'rest' },
+      { second: 8, kind: 'work' },
+      { second: 10, kind: 'interval' },
+      { second: 12, kind: 'interval' },
+      { second: 13, kind: 'done' },
     ])
     expect(timerCues(phases, 2, false)).toEqual([])
   })
 
   it('encodes cues into the audio timeline so hidden-page callbacks are unnecessary', async () => {
-    const phases = timerPhases({ rounds: 1, workSec: 4, prepareSec: 1 })
+    const phases = timerPhases({ rounds: 1, workSec: 4 })
     const blob = timerAudioBlob(phases, 2, true)
     const bytes = new Uint8Array(await blob.arrayBuffer())
     const view = new DataView(bytes.buffer)
@@ -53,9 +61,9 @@ describe('tool timer phases', () => {
     expect(view.getUint32(24, true)).toBe(11025)
     expect(view.getUint32(40, true)).toBe(bytes.length - 44)
     const audibleNear = second => bytes.slice(44 + second * 11025, 44 + (second + 0.15) * 11025).some(value => value !== 128)
-    expect(audibleNear(1)).toBe(true) // work starts
-    expect(audibleNear(3)).toBe(true) // interval ding
-    expect(audibleNear(4)).toBe(false) // no extra ding between interval and finish
-    expect(audibleNear(5)).toBe(true) // finish
+    expect(audibleNear(0)).toBe(true) // work starts immediately
+    expect(audibleNear(2)).toBe(true) // interval ding
+    expect(audibleNear(3)).toBe(false) // no extra ding between interval and finish
+    expect(audibleNear(4)).toBe(true) // finish
   })
 })

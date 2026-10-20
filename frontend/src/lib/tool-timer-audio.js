@@ -6,7 +6,7 @@ import { timerCues } from './tool-timer.js'
 // multi-megabyte array for a long timer; cue samples are the only new audio data.
 const RATE = 11025
 const SILENCE = new Uint8Array(RATE * 10).fill(128)
-const DING_LENGTH = { prepare: 0.32, work: 0.48, rest: 0.32, interval: 0.22, done: 0.72 }
+const DING_LENGTH = { work: 0.48, rest: 0.32, interval: 0.22, done: 0.72 }
 
 function header(samples) {
   const bytes = new ArrayBuffer(44)
