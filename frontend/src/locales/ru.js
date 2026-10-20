@@ -1,5 +1,8 @@
 // Russian UI strings. Keys are the English source strings (see lib/i18n.js).
+import { TOOL_STRINGS } from '../lib/tool-strings.js'
+
 export default {
+  ...TOOL_STRINGS,
   'Confirm': 'Подтвердить',
   'Cancel': 'Отмена',
   'Press back again to exit': 'Нажмите «Назад» ещё раз, чтобы выйти',

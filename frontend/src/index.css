@@ -287,6 +287,27 @@ h4.sec{
 }
 .card .big{font-size:30px;font-weight:600;letter-spacing:-.026em;line-height:1.1}
 
+/* Tools: a library entry and one configurable timer, sized for gloved gym use. */
+.tool-link{gap:14px;min-height:68px}
+.tool-link>.icn:first-child{font-size:25px;color:var(--acc)}
+.tool-link>.icn:last-child{font-size:16px;color:var(--label-3)}
+.tool-link .grow{display:flex;flex-direction:column;gap:3px;text-align:start}
+.tool-link strong{font-size:16px;font-weight:600}
+.tool-link small{font-size:13px;color:var(--label-2)}
+.tool-clock{text-align:center;padding:28px 16px}
+.tool-phase{font-size:16px;font-weight:600;color:var(--acc)}
+.tool-digits{font-size:clamp(64px,19vw,100px);font-weight:700;letter-spacing:-.06em;line-height:1.15;font-variant-numeric:tabular-nums}
+.tool-controls{display:flex;gap:10px;margin-bottom:16px}
+.tool-controls>.btn{min-height:54px;flex:1}
+.tool-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:17px}
+.tool-field{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:13px;color:var(--label-2)}
+.tool-field .field{font-size:19px;font-variant-numeric:tabular-nums}
+.tool-check{display:flex;align-items:center;gap:10px;padding:10px 0 16px;font-size:16px}
+.tool-check input{width:20px;height:20px;accent-color:var(--acc)}
+.tool-interval .field{max-width:170px}
+.tool-error{color:var(--red);margin:8px 0}
+.tool-note{margin:12px 4px 20px;line-height:1.5}
+
 /* ------------------------------------------------------ inset group list -- */
 .sect{margin-bottom:22px}
 .sect-t{

@@ -1,5 +1,8 @@
 // Ukrainian UI strings. Keys are the English source strings (see lib/i18n.js).
+import { TOOL_STRINGS } from '../lib/tool-strings.js'
+
 export default {
+  ...TOOL_STRINGS,
   'Confirm': 'Підтвердити',
   'Cancel': 'Скасувати',
   'Press back again to exit': 'Натисни «Назад» ще раз, щоб вийти',

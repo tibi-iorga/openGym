@@ -1,5 +1,8 @@
 // French UI strings. Keys are the English source strings (see lib/i18n.js).
+import { TOOL_STRINGS } from '../lib/tool-strings.js'
+
 export default {
+  ...TOOL_STRINGS,
   'Confirm': 'Confirmer',
   'Cancel': 'Annuler',
   'Press back again to exit': 'Appuie de nouveau pour quitter',
