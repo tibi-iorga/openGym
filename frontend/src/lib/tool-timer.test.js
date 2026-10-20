@@ -66,4 +66,17 @@ describe('tool timer phases', () => {
     expect(audibleNear(3)).toBe(false) // no extra ding between interval and finish
     expect(audibleNear(4)).toBe(true) // finish
   })
+
+  it('gives the round bell a longer ring than the rest cue at their phase boundaries', async () => {
+    const phases = timerPhases({ rounds: 2, workSec: 2, restSec: 2 })
+    const bytes = new Uint8Array(await timerAudioBlob(phases, 0, true).arrayBuffer())
+    const energy = (from, to) => {
+      const start = 44 + Math.round(from * 11025)
+      const end = 44 + Math.round(to * 11025)
+      return bytes.slice(start, end).reduce((sum, sample) => sum + Math.abs(sample - 128), 0) / (end - start)
+    }
+    expect(energy(0.6, 0.7)).toBeGreaterThan(1) // metallic round bell is still ringing
+    expect(energy(2.6, 2.7)).toBeLessThan(1) // muted rest cue has ended
+    expect(energy(6.4, 6.5)).toBeGreaterThan(1) // finish has a separate second strike
+  })
 })
