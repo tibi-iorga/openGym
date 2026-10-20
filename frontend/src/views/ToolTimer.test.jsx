@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import Tools from './Tools.jsx'
 import ToolTimer from './ToolTimer.jsx'
@@ -41,7 +41,7 @@ it('opens one timer from Tools, keeps it playing while browsing Exercises, and r
     root.render(<MemoryRouter initialEntries={['/tools']}><Routes>
       <Route path="/tools" element={<Tools />} />
       <Route path="/tools/timer" element={<ToolTimer />} />
-      <Route path="/library" element={<div>Exercise library</div>} />
+      <Route path="/library" element={<div>Exercise library <Link to="/tools/timer">Timer</Link></div>} />
     </Routes></MemoryRouter>)
   })
   expect(button('Exercises')).toBeTruthy()
@@ -62,4 +62,13 @@ it('opens one timer from Tools, keeps it playing while browsing Exercises, and r
   expect(media.paused).toBe(false)
   act(() => media.onended())
   expect(toolTimerSnapshot()).toMatchObject({ state: 'done', position: { kind: 'done', remainingMs: 0 } })
+  act(() => host.querySelector('a').click())
+  expect(host.querySelector('.tool-phase').textContent).toBe('Done')
+  act(() => {
+    const input = field('Work seconds')
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '90')
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  expect(host.querySelector('.tool-phase').textContent).toBe('Ready')
+  expect(host.textContent).toContain('1:35 total')
 })

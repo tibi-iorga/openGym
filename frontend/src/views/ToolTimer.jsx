@@ -31,7 +31,10 @@ export default function ToolTimer() {
     return () => clearInterval(tick)
   }, [snapshot.state])
 
-  const change = (key, value) => setSettings(previous => ({ ...previous, [key]: value }))
+  const change = (key, value) => {
+    if (snapshot.state === 'done') stopToolTimer()
+    setSettings(previous => ({ ...previous, [key]: value }))
+  }
   let phases, invalid = ''
   try {
     phases = timerPhases(settings)
