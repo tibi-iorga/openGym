@@ -1637,7 +1637,7 @@ function ActiveWorkout() {
       if (side) e.sets[i] = toggleSide(e.sets[i], side)
       else e.sets[i].done = !e.sets[i].done
       checked = e.sets[i].done
-      // When the work happened, for the session's end (lib/finish-workout.js sessionEnd).
+      // When the work happened, for exports and the forgotten-session cutoff.
       if (!editing && (side ? e.sets[i].sides[side].done : checked)) e.sets[i].at = Date.now()
       // A finished row has no use for a plan set aside by a hold that did not finish.
       if (checked && e.sets[i].planSec != null) delete e.sets[i].planSec

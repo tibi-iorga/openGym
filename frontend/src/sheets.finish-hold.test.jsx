@@ -109,6 +109,19 @@ describe('the Finish sheet', () => {
     expect(S().workouts).toHaveLength(1)
   })
 
+  it('saves the Finish tap after a normal long break between sets', () => {
+    vi.setSystemTime(new Date('2026-10-19T18:10:00Z'))
+    const start = Date.now() - 66 * 60000
+    install([7, 10, 40, 44, 50, 64].map(min => ({ w: 40, r: 5, done: true, at: start + min * 60000 })))
+    useStore.getState().update(s => { s.active.start = start })
+
+    act(() => finishWorkoutSheet({ onDiscard: vi.fn() }))
+    tapItem(sheetText(), 'Finish and save')
+
+    expect(S().workouts).toHaveLength(1)
+    expect(S().workouts[0].end - S().workouts[0].start).toBe(66 * 60000)
+  })
+
   it('keeps the early-finish wording as its message, and Discard calls the screen\'s own discard', () => {
     install([{ w: 40, r: 5, done: true }, { w: 40, r: 5 }, { w: 40, r: 5 }])
     const onDiscard = vi.fn()

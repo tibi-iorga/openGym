@@ -280,6 +280,19 @@ describe('sessionEnd: a workout finished long after its last set', () => {
     expect(sessionEnd(at(0, 15, 30, 45, 24 * 60), T0 + 24 * 60 * MIN + 1)).toBe(T0 + 45 * MIN)
   })
 
+  it('keeps a live workout that resumes after a 27-minute gap', () => {
+    // The first logged Foundation session had a 27-minute gap after squats, then
+    // snatches, pull-ups and boxing before Finish. It was about an hour, not 13 min.
+    const active = at(7, 10, 12, 13, 40, 40, 40, 41, 44, 46, 48, 64)
+    expect(sessionEnd(active, T0 + 66 * MIN)).toBe(T0 + 66 * MIN)
+  })
+
+  it('uses a two-hour inactivity cutoff', () => {
+    expect(FORGOTTEN_GAP_MS).toBe(120 * MIN)
+    expect(sessionEnd(at(0), T0 + 119 * MIN)).toBe(T0 + 119 * MIN)
+    expect(sessionEnd(at(0), T0 + 121 * MIN)).toBe(T0)
+  })
+
   it('ignores unticked sets and sets from builds that did not stamp them', () => {
     const active = { entries: [{ id: 'x', sets: [
       { done: true, w: 50, r: 8, at: T0 },
