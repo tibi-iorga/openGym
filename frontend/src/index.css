@@ -295,7 +295,7 @@ h4.sec{
 .tool-link strong{font-size:16px;font-weight:600}
 .tool-link small{font-size:13px;color:var(--label-2)}
 .tool-header{margin-bottom:20px}
-.tool-setup{padding-bottom:110px}
+.tool-setup{padding-bottom:24px}
 .tool-summary{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px 9px;color:var(--label-2);font-size:13px}
 .tool-summary strong{font-size:15px;font-weight:600;color:var(--label)}
 .tool-stepper-list{display:grid;gap:10px;margin-bottom:14px}
@@ -322,8 +322,8 @@ button.tool-stepper-value{min-height:52px}
 .tool-edit-actions button{min-height:44px;padding:0 16px;border-radius:var(--r-sm);font-size:15px}
 .tool-edit-save{background:var(--acc);color:var(--on-acc);font-weight:600}
 .tool-edit-save:disabled{opacity:.4}
-.tool-start-dock{position:fixed;inset-inline-start:50%;bottom:calc(96px + var(--sab));transform:translateX(-50%);width:min(calc(100% - 2*var(--pad)),528px);z-index:40;background:var(--bg);padding:10px 0 2px}
-.tool-start-dock>.btn{width:100%;min-height:58px}
+.tool-start-action{margin-top:14px}
+.tool-start-action>.btn{width:100%;min-height:58px}
 .tool-run{display:flex;flex-direction:column;min-height:calc(100dvh - var(--sat) - var(--conn) - var(--sab) - 154px);padding:8px 2px 0}
 .tool-run-main{display:flex;flex:1;flex-direction:column;justify-content:center;min-height:290px;padding:0 14px 28px}
 .tool-phase{font-size:21px;font-weight:600;color:var(--acc)}

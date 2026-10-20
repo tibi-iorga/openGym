@@ -136,7 +136,7 @@ export default function ToolTimer() {
           <input type="checkbox" checked={settings.sound} onChange={event => change('sound', event.target.checked)} /></label>
       </div>
       {invalid && <p className="small tool-error" role="alert">{invalid}</p>}
-      {editing === null && <div className="tool-start-dock"><Button variant="primary" icon="play" disabled={!!invalid}
+      {editing === null && <div className="tool-start-action"><Button variant="primary" icon="play" disabled={!!invalid}
         onClick={() => startToolTimer(settings)}>{t('Start')}</Button></div>}
     </section>}
   </>
