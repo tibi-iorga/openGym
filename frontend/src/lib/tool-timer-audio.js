@@ -1,4 +1,5 @@
 import { timerCues } from './tool-timer.js'
+import { RECORDED_BELL } from './tool-timer-bell.js'
 
 // An HTML audio track keeps its own clock and can continue on Chrome's lock screen. A
 // JavaScript interval cannot promise that: hidden-page callbacks may be delayed or stopped.
@@ -6,11 +7,7 @@ import { timerCues } from './tool-timer.js'
 // multi-megabyte array for a long timer; cue samples are the only new audio data.
 const RATE = 11025
 const SILENCE = new Uint8Array(RATE * 10).fill(128)
-const CUE_LENGTH = { work: 0.94, rest: 0.36, interval: 0.22, done: 1.28 }
-const BELL_PARTIALS = [
-  [624, 0.52, 0.82], [633, 0.18, 0.73], [943, 0.38, 0.66],
-  [1271, 0.30, 0.52], [1716, 0.24, 0.40], [2369, 0.14, 0.24], [3217, 0.09, 0.13],
-]
+const CUE_LENGTH = { work: RECORDED_BELL.length / RATE, rest: 0.36, interval: 0.22, done: 1.28 }
 
 function header(samples) {
   const bytes = new ArrayBuffer(44)
@@ -25,15 +22,6 @@ function header(samples) {
   return bytes
 }
 
-function bell(t) {
-  if (t < 0 || t >= CUE_LENGTH.work) return 0
-  const attack = Math.min(1, t / 0.004)
-  const ring = BELL_PARTIALS.reduce((sum, [frequency, volume, decay]) =>
-    sum + volume * Math.exp(-t / decay) * Math.sin(2 * Math.PI * frequency * t), 0)
-  const strike = 0.28 * Math.exp(-t / 0.015) * Math.sin(2 * Math.PI * 3910 * t)
-  return attack * (ring + strike) * Math.min(1, (CUE_LENGTH.work - t) / 0.035)
-}
-
 function restTap(t) {
   const body = 0.72 * Math.exp(-t / 0.11) * Math.sin(2 * Math.PI * 418 * t)
     + 0.38 * Math.exp(-t / 0.065) * Math.sin(2 * Math.PI * 697 * t)
@@ -41,15 +29,21 @@ function restTap(t) {
 }
 
 function cueSamples(kind) {
+  if (kind === 'work') return RECORDED_BELL
   const length = Math.round(CUE_LENGTH[kind] * RATE)
   const data = new Uint8Array(length)
+  const secondStrike = Math.round(0.34 * RATE)
   for (let i = 0; i < length; i++) {
     const t = i / RATE
-    const wave = kind === 'work' ? bell(t)
-      : kind === 'rest' ? restTap(t)
-        : kind === 'done' ? 0.82 * bell(t) + 0.82 * bell(t - 0.34)
-          : Math.sin(2 * Math.PI * 990 * t) * Math.max(0, 1 - t / CUE_LENGTH.interval)
-    data[i] = Math.max(0, Math.min(255, Math.round(128 + 48 * wave)))
+    if (kind === 'done') {
+      const first = (RECORDED_BELL[i] ?? 128) - 128
+      const second = (RECORDED_BELL[i - secondStrike] ?? 128) - 128
+      data[i] = Math.round(128 + 0.58 * (first + second))
+    } else {
+      const wave = kind === 'rest' ? restTap(t)
+        : Math.sin(2 * Math.PI * 990 * t) * Math.max(0, 1 - t / CUE_LENGTH.interval)
+      data[i] = Math.max(0, Math.min(255, Math.round(128 + 48 * wave)))
+    }
   }
   return data
 }

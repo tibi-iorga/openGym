@@ -79,4 +79,19 @@ describe('tool timer phases', () => {
     expect(energy(2.6, 2.7)).toBeLessThan(1) // muted rest cue has ended
     expect(energy(6.4, 6.5)).toBeGreaterThan(1) // finish has a separate second strike
   })
+
+  it('keeps recorded strikes inside one-second rounds without shifting or clipping the next cue', async () => {
+    const phases = timerPhases({ rounds: 2, workSec: 1, restSec: 1 })
+    const bytes = new Uint8Array(await timerAudioBlob(phases, 0, true).arrayBuffer()).slice(44)
+    const energy = (from, to) => {
+      const slice = bytes.slice(Math.round(from * 11025), Math.round(to * 11025))
+      return slice.reduce((sum, sample) => sum + Math.abs(sample - 128), 0) / slice.length
+    }
+    expect(energy(0.50, 0.60)).toBeGreaterThan(energy(0.40, 0.50) * 1.5) // recorded third strike
+    expect(energy(0.95, 1.00)).toBeLessThan(1) // fade ends before Rest
+    expect(energy(1.00, 1.05)).toBeGreaterThan(1) // Rest starts on time
+    expect(energy(2.00, 2.05)).toBeGreaterThan(1) // next round starts on time
+    expect(energy(3.00, 3.05)).toBeGreaterThan(1) // Finish starts on time
+    expect(bytes.some(sample => sample === 0 || sample === 255)).toBe(false)
+  })
 })
