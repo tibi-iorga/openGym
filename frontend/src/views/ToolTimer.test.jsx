@@ -34,7 +34,28 @@ afterEach(() => {
 })
 
 const button = name => [...host.querySelectorAll('button')].find(element => element.textContent.trim() === name || element.querySelector('strong')?.textContent === name || element.getAttribute('aria-label') === name)
-const field = name => [...host.querySelectorAll('label')].find(element => element.textContent.includes(name))?.querySelector('input')
+const setting = name => [...host.querySelectorAll('.tool-setting-row')].find(element => element.querySelector('span')?.textContent === name)
+const setInput = (input, value) => {
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, value)
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+it('shows saved seconds as touch-sized times and commits a duration edit', async () => {
+  localStorage.setItem('opengym_tool_timer_v1', JSON.stringify({ rounds: 3, workSec: 90, restSec: 45, prepareSec: 10, intervalSec: 45, sound: true }))
+  await act(async () => root.render(<MemoryRouter><ToolTimer /></MemoryRouter>))
+  expect(setting('Work').textContent).toContain('1:30')
+  expect(setting('Rest').textContent).toContain('0:45')
+  expect(host.querySelector('.tool-cadence-row select').value).toBe('custom')
+  expect(host.querySelector('.tool-custom-row input').value).toBe('45')
+  act(() => setting('Work').click())
+  expect(host.querySelector('[aria-label="Work Minutes"]').value).toBe('1')
+  act(() => setInput(host.querySelector('[aria-label="Work Seconds"]'), '75'))
+  expect(button('Done').disabled).toBe(true)
+  act(() => setInput(host.querySelector('[aria-label="Work Seconds"]'), '20'))
+  act(() => button('Done').click())
+  expect(setting('Work').textContent).toContain('1:20')
+  expect(JSON.parse(localStorage.getItem('opengym_tool_timer_v1')).workSec).toBe(80)
+})
 
 it('opens one timer from Tools, keeps it playing while browsing Exercises, and resumes from media time', async () => {
   await act(async () => {
@@ -47,9 +68,12 @@ it('opens one timer from Tools, keeps it playing while browsing Exercises, and r
   expect(button('Exercises')).toBeTruthy()
   act(() => button('Timer').click())
   expect(host.textContent).toContain('Timer setup')
-  expect(field('Work seconds').value).toBe('60')
+  expect(setting('Work').textContent).toContain('1:00')
   await act(async () => button('Start').click())
   expect(media.paused).toBe(false)
+  expect(host.querySelector('.tool-setup')).toBeNull()
+  expect(host.querySelector('.tool-run')).toBeTruthy()
+  expect(host.querySelector('.tool-next').textContent).toContain('Work')
   act(() => { media.currentTime = 7; media.ontimeupdate() })
   expect(host.querySelector('.tool-digits').textContent).toBe('0:58')
   act(() => button('Pause').click())
@@ -64,11 +88,7 @@ it('opens one timer from Tools, keeps it playing while browsing Exercises, and r
   expect(toolTimerSnapshot()).toMatchObject({ state: 'done', position: { kind: 'done', remainingMs: 0 } })
   act(() => host.querySelector('a').click())
   expect(host.querySelector('.tool-phase').textContent).toBe('Done')
-  act(() => {
-    const input = field('Work seconds')
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '90')
-    input.dispatchEvent(new Event('input', { bubbles: true }))
-  })
-  expect(host.querySelector('.tool-phase').textContent).toBe('Ready')
-  expect(host.textContent).toContain('1:35 total')
+  act(() => button('Edit timer').click())
+  expect(setting('Work').textContent).toContain('1:00')
+  expect(host.querySelector('.tool-run')).toBeNull()
 })
