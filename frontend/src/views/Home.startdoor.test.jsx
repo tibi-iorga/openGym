@@ -1,9 +1,5 @@
 // @vitest-environment happy-dom
-// The Start button in the tab bar (components/TabBar.jsx) and Home's today row both go straight
-// into today's planned session the moment there is one, and only fall through to the Start
-// screen when nothing is planned. So on any day with a routine, a freestyle session and the
-// "Other routines" list are unreachable — the only other way in, "Choose a different workout"
-// on the weigh-in sheet, does not exist with the weigh-in switched off. Home carries that door.
+// Home exposes an empty start alongside the named plan and the full chooser.
 import React, { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRoot } from 'react-dom/client'
@@ -43,7 +39,20 @@ const mount = () => act(() => root.render(<Home />))
 const door = () => [...host.querySelectorAll('button')].find(b => b.textContent.includes('Choose a different workout'))
 
 describe('Home — the way to the Start screen when a plan already owns today', () => {
-  it('offers the door on a planned day, where the Start button would start the plan', () => {
+  it('offers an explicit empty workout without selecting today’s routine', () => {
+    setS(); mount()
+    const empty = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start empty workout')
+    expect(empty).toBeTruthy()
+    act(() => empty.click())
+    expect(startFlow).toHaveBeenCalledWith([])
+  })
+
+  it('does not offer a new empty workout while a session is active', () => {
+    setS({ active: { id: 'a', name: 'Push', start: Date.now(), cur: 0, entries: [] } })
+    mount()
+    expect(host.textContent).not.toContain('Start empty workout')
+  })
+  it('offers the chooser on a planned day alongside the routine shortcut', () => {
     setS(); mount()
     expect(door()).toBeTruthy()
   })

@@ -2,6 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
+  "Start empty workout": "খালি ওয়ার্কআউট শুরু করুন",
+  "Add exercises as you go.": "ওয়ার্কআউটের সময় ব্যায়াম যোগ করুন।",
   ...TOOL_STRINGS,
   'Confirm': 'নিশ্চিত করুন',
   'Cancel': 'বাতিল',

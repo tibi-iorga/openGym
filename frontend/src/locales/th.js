@@ -2,6 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
+  "Start empty workout": "เริ่มการฝึกแบบว่าง",
+  "Add exercises as you go.": "เพิ่มท่าออกกำลังกายระหว่างฝึก",
   ...TOOL_STRINGS,
   // --- generic ---
   'Confirm': 'ยืนยัน',

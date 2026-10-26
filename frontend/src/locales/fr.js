@@ -2,6 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
+  "Start empty workout": "Commencer une séance vide",
+  "Add exercises as you go.": "Ajoute des exercices au fur et à mesure.",
   ...TOOL_STRINGS,
   'Confirm': 'Confirmer',
   'Cancel': 'Annuler',

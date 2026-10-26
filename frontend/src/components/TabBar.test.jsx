@@ -8,8 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import TabBar from './TabBar.jsx'
 import { DEF, useStore } from '../store/useStore.js'
 
+const nav = vi.fn()
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => () => {},
+  useNavigate: () => nav,
   useLocation: () => ({ pathname: '/home' }),
 }))
 
@@ -18,6 +19,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 let host, root, originalS, originalUser
 
 beforeEach(() => {
+  nav.mockClear()
   const store = useStore.getState()
   originalS = store.S
   originalUser = store.user
@@ -34,6 +36,31 @@ afterEach(() => {
 })
 
 const tabs = () => [...host.querySelectorAll('#tabbar button')]
+
+describe('Start chooses a workout; Resume preserves it', () => {
+  it('opens the chooser on a planned day without starting the plan', () => {
+    useStore.setState(s => ({ S: {
+      ...s.S,
+      routines: [{ id: 'push', name: 'Push', ex: [{ id: '0025' }] }],
+      week: Object.fromEntries([0, 1, 2, 3, 4, 5, 6].map(day => [day, ['push']])),
+    } }))
+    const onStart = vi.fn()
+    act(() => root.render(<TabBar onStart={onStart} />))
+    act(() => tabs()[2].click())
+    expect(nav).toHaveBeenCalledWith('/workout')
+    expect(onStart).not.toHaveBeenCalled()
+    expect(useStore.getState().S.active).toBeNull()
+  })
+
+  it('resumes an existing session without replacing it', () => {
+    const active = { id: 'in-progress', entries: [], cur: 0, start: Date.now() }
+    useStore.setState(s => ({ S: { ...s.S, active } }))
+    act(() => root.render(<TabBar />))
+    act(() => tabs()[2].click())
+    expect(nav).toHaveBeenCalledWith('/workout')
+    expect(useStore.getState().S.active).toBe(active)
+  })
+})
 
 describe('the tab bar across a store write', () => {
   it('keeps the very same buttons instead of rebuilding them every tick', () => {
