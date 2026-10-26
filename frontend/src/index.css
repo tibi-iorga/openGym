@@ -290,7 +290,7 @@ h4.sec{
 .home-start-actions{display:grid;gap:4px;margin-top:12px}
 .home-start-actions>.btn,.workout-start .btn{width:100%;min-height:48px;white-space:normal}
 .empty-workout-start p{margin:10px 0 0;text-align:center}
-.template-start-toggle{margin-bottom:12px}
+.workout-start>h2.sec{font-size:17px;font-weight:600;margin:24px 4px 12px}
 .workout-start .row.between>div{min-width:0}
 .workout-start .big,.workout-start .tt{overflow-wrap:anywhere}
 .workout-start button.item{width:100%;text-align:start}

@@ -56,8 +56,6 @@ const HOLD_KEY_GRACE_MS = 1500
 function StartChooser() {
   const nav = useNavigate()
   const S = useStore(s => s.S)
-  const [showTemplates, setShowTemplates] = useState(false)
-  const templatesId = useId()
   const todayIds = effectiveRoutineIds(S, todayISO())
   const todayRoutines = effectiveRoutines(S, todayISO())
   const todayName = todayRoutines.map(r => r.name).join(' + ')
@@ -78,63 +76,47 @@ function StartChooser() {
         </Button>
         <p className="muted small">{t('Add exercises as you go.')}</p>
       </div>
-      <Button
-        variant="tinted"
-        className="template-start-toggle"
-        icon="calendar"
-        trailingIcon={showTemplates ? 'chevronUp' : 'chevronDown'}
-        aria-expanded={showTemplates}
-        aria-controls={templatesId}
-        onClick={() => setShowTemplates(shown => !shown)}
-      >
-        {t('Start from a template')}
-      </Button>
-      <div id={templatesId} hidden={!showTemplates}>
-        {showTemplates && (
-          <>
-            {todayRoutines.length > 0 && (
-              <div className="card">
-                <h2>{t("Today's plan")}{todayOvr ? ' · ' + t('rescheduled') : ''}</h2>
-                <div className="row between" style={{ marginBottom: 12 }}>
-                  <div>
-                    <div className="big">{todayName}</div>
-                    <div className="muted small">{exCount(todayRoutines.reduce((n, r) => n + r.ex.length, 0))}</div>
-                  </div>
-                  <span className="lrow-i" style={{ width: 38, height: 38, borderRadius: 9, fontSize: 22 }}>
-                    <Icon name={glyphOf(todayRoutines[0].emoji)} />
-                  </span>
+      <h2 className="sec">{t('Start from a template')}</h2>
+      {todayRoutines.length > 0 && (
+        <div className="card">
+          <h2>{t("Today's plan")}{todayOvr ? ' · ' + t('rescheduled') : ''}</h2>
+          <div className="row between" style={{ marginBottom: 12 }}>
+            <div>
+              <div className="big">{todayName}</div>
+              <div className="muted small">{exCount(todayRoutines.reduce((n, r) => n + r.ex.length, 0))}</div>
+            </div>
+            <span className="lrow-i" style={{ width: 38, height: 38, borderRadius: 9, fontSize: 22 }}>
+              <Icon name={glyphOf(todayRoutines[0].emoji)} />
+            </span>
+          </div>
+          <Button variant="tinted" icon="play" onClick={() => startFlow(todayIds)}>
+            {t('Start {0}', todayName)}
+          </Button>
+        </div>
+      )}
+      {others.length > 0 && (
+        <>
+          <h4 className="sec">{t('Other routines')}</h4>
+          <div className="list">
+            {others.map(r => (
+              <button type="button" key={r.id} className="item" onClick={() => startFlow([r.id])}>
+                <span className="lrow-i"><Icon name={glyphOf(r.emoji)} /></span>
+                <div className="grow">
+                  <div className="tt">{r.name}</div>
+                  <div className="ss">{exCount(r.ex.length)}</div>
                 </div>
-                <Button variant="tinted" icon="play" onClick={() => startFlow(todayIds)}>
-                  {t('Start {0}', todayName)}
-                </Button>
-              </div>
-            )}
-            {others.length > 0 && (
-              <>
-                <h4 className="sec">{t('Other routines')}</h4>
-                <div className="list">
-                  {others.map(r => (
-                    <button type="button" key={r.id} className="item" onClick={() => startFlow([r.id])}>
-                      <span className="lrow-i"><Icon name={glyphOf(r.emoji)} /></span>
-                      <div className="grow">
-                        <div className="tt">{r.name}</div>
-                        <div className="ss">{exCount(r.ex.length)}</div>
-                      </div>
-                      <span className="tag acc">{t('Start')}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            {!S.routines.length && (
-              <div className="card">
-                <p className="muted small">{t('No routines yet.')}</p>
-                <Button icon="calendar" onClick={() => nav('/plan')}>{t('Plan')}</Button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+                <span className="tag acc">{t('Start')}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {!S.routines.length && (
+        <div className="card">
+          <p className="muted small">{t('No routines yet.')}</p>
+          <Button icon="calendar" onClick={() => nav('/plan')}>{t('Plan')}</Button>
+        </div>
+      )}
     </div>
   )
 }
