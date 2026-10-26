@@ -8,6 +8,8 @@ import { rememberDefaultLang } from '../lib/default-lang.js'
 import { guestAllowed } from '../lib/guest.js'
 import { MOBILE, initReminderSync, nativeLoad, nativeSave, onAppActive, readJsonFile, syncReminder, writeAutoBackup, writeJsonFile } from '../lib/mobile.js'
 import { initHealthSync, syncHealth } from '../lib/health-sync.js'
+import { initStepsSync } from '../lib/steps-sync.js'
+import { importStepDays } from '../lib/steps.js'
 import { refillIfComplete } from '../lib/rotation.js'
 import { liftLegacy } from '../lib/sync-legacy.js'
 import { mergeStates, localExtras, stampChange, highestStamp, stampRestore, stampReplace, inUnitOf, keepReset, resetIdsOf, mergeResetIds, entryKey } from '../lib/sync-merge.js'
@@ -91,6 +93,8 @@ export const DEF = {
   // A note per day off (#261): { [iso]: { tag, text, _ts } } (lib/day-notes.js). A noted day is
   // excused from the missed-day nudge; each day merges on its own stamp (lib/sync-merge.js).
   dayNotes: {},
+  // Read-only Health Connect totals. Each day merges separately; opt-in stays on the phone.
+  dailySteps: {},
   // Body measurements (#82): one check-in per day, values in cm whatever the weight unit
   // (lib/measurements.js); merged across devices like weigh-ins (lib/sync-merge.js).
   measurements: [], measurementEnabled: null, customMeasurements: [],
@@ -289,7 +293,7 @@ function loadState() {
 // weigh-ins and custom exercises. A custom exercise is all a new guest may have made — with its
 // photo or video, which the server counts as unreferenced until the state that names it lands —
 // so a profile created from such a copy takes it at once, like one holding a workout.
-const hasData = st => !!((st.workouts || []).length || (st.routines || []).length || (st.bodyweight || []).length || (st.customEx || []).length || (st.measurements || []).length)
+const hasData = st => !!((st.workouts || []).length || (st.routines || []).length || (st.bodyweight || []).length || (st.customEx || []).length || (st.measurements || []).length || Object.keys(st.dailySteps || {}).length)
 
 // Decide whether a pulled account state may replace the local saved state. A local active workout
 // is deliberately carried forward: the server stores completed/saved state, while the in-progress
@@ -470,6 +474,21 @@ export const useStore = create((set, get) => {
 
   initReminderSync(() => get().S)
   initHealthSync(() => get().S)
+  initStepsSync(() => {
+    const current = get()
+    if (!current?.ready || current.needsMobileOnboarding || adoptHold || current.sync.auth) {
+      return null
+    }
+    if (pairedBase && !current.user) {
+      return null
+    }
+    return {
+      owner: JSON.stringify([serverBase(), current.user?.id || 'local']),
+      resetAt: current.S.resetAt || 0,
+    }
+  }, result => get().update(draft => {
+    draft.dailySteps = importStepDays(draft.dailySteps, result)
+  }))
 
   // Mobile build: the file mirror, and beside it whose copy it is and which one (its `_ts`) —
   // restoreFromMirror takes the file back only for that account, and only while the two agree,

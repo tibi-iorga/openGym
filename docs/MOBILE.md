@@ -177,7 +177,37 @@ video autoplays muted in the Android WebView; a long video seeks from its `_capa
 URL on both platforms; an iPhone photo arrives as JPEG and an iPhone video (HEVC or H.264 MOV)
 plays; the zip export opens the share sheet.
 
-### Health Connect (Android)
+### Reading steps (Android)
+
+Home → **Steps → Connect** opens the reader. **Allow reading steps** requests only
+`READ_STEPS`. It does not enable the separate workout/weight writer or ask for location,
+physical activity sensors, background reading, or step writing.
+
+The app reads Health Connect's aggregate for each of the last 30 local calendar days, including
+today. Health Connect handles overlapping sources, including the phone's own steps; openGym
+does not add phone and watch records together. Missing data is shown as a dash, never a made-up
+zero. Re-reading replaces a day's total, including corrections downward. Older imported days
+remain in history. Calendar dates follow the phone's time zone at the time of reading; changing
+time zone can rebucket the recent history.
+
+Reading happens at launch and on return to the foreground (at most once per five minutes), or
+with **Refresh steps**. There is no background job. **Last phone read** is when Health Connect
+was read successfully; server connection/pending status is shown by the usual sync UI.
+
+Daily totals, date, time zone and read time are stored with the profile and sync to the paired
+server through the normal revision/merge protocol. No raw sensor samples or routes are stored.
+Web and iOS can display those synced totals but cannot read Android Health Connect themselves.
+The opt-in lives only in `opengym-steps.json`, bound to the server/profile and reset generation.
+Changing profiles or resetting the log requires enabling it for that context. Disabling the
+reader keeps imported history and does not revoke the OS permission; use **Open Health Connect**
+to revoke it. Denial or read errors keep prior totals and their last successful read time.
+
+Android system cloud backup is disabled for this fork so imported health data in the WebView
+and file mirror is not automatically uploaded there. Manual exports, chosen backup folders and
+sync to the user's own server still work; their destination is under the user's control.
+Device transfer excludes the reader's opt-in file.
+
+### Writing to Health Connect (Android)
 
 Settings → **Health Connect** writes finished workouts and weigh-ins to Health Connect, Android's
 on-device store for health data, where other apps (Google Fit, Samsung Health, a smartwatch app…)
@@ -191,8 +221,8 @@ that.
   Each weigh-in as a weight record, in kilograms. A workout without a real start and end is left
   out rather than given made-up times. `src/lib/health-connect.js` works this out; its tests
   pin it.
-- **Write-only.** The manifest declares `WRITE_EXERCISE` and `WRITE_WEIGHT` and nothing else, and
-  openGym reads nothing back.
+- **Separate permissions.** This writer requests `WRITE_EXERCISE` and `WRITE_WEIGHT` only.
+  `READ_STEPS` is declared for the separate opt-in reader described above.
 - **No duplicates.** Every record carries openGym's own id as its `clientRecordId`
   (`opengym-w-<workout id>`, `opengym-bw-<day>`), so writing it again replaces it. An edited workout
   or weigh-in is written again; a deleted one is removed from Health Connect.

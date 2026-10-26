@@ -1479,7 +1479,7 @@ function HealthConnectCard({ S, toast }) {
 
   return (
     <Section title={t('Health Connect')}
-      footer={h.on ? t('Workouts and weigh-ins go to Health Connect when you finish or change them. openGym reads nothing back.') : null}>
+      footer={h.on ? t('Workouts and weigh-ins go to Health Connect when you finish or change them. Step reading is enabled separately on Home.') : null}>
       <Row icon="heart" iconTint="var(--red)" title={t('Write to Health Connect')}
         subtitle={t('Finished workouts and weigh-ins, from this phone only.')}>
         <Switch checked={!!h.on} disabled={busy} onChange={v => (v ? turnOn() : askOff())} />

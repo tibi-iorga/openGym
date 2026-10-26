@@ -10,6 +10,10 @@ import androidx.health.connect.client.PermissionController;
 import androidx.health.connect.client.records.ExerciseSessionRecord;
 import androidx.health.connect.client.records.Record;
 import androidx.health.connect.client.records.WeightRecord;
+import androidx.health.connect.client.records.StepsRecord;
+import androidx.health.connect.client.request.AggregateGroupByPeriodRequest;
+import androidx.health.connect.client.aggregate.AggregationResultGroupedByPeriod;
+import androidx.health.connect.client.time.TimeRangeFilter;
 import androidx.health.connect.client.records.metadata.Metadata;
 import androidx.health.connect.client.units.Mass;
 import com.getcapacitor.JSArray;
@@ -20,11 +24,16 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +46,7 @@ import org.json.JSONObject;
 
 /**
  * Writes finished workouts and weigh-ins to Health Connect (#200), the phone's own store for
- * health data, so other apps can read them. Write-only and off until the user turns it on in
+ * health data, so other apps can read them. Writing is off until the user turns it on in
  * Settings: no permission is asked for before that. What to write is worked out in JS
  * (lib/health-connect.js); this side only turns those plain objects into records.
  *
@@ -67,6 +76,8 @@ public class HealthConnectPlugin extends Plugin {
     // The literal permission names, as declared in AndroidManifest.xml.
     private static final String WRITE_EXERCISE = "android.permission.health.WRITE_EXERCISE";
     private static final String WRITE_WEIGHT = "android.permission.health.WRITE_WEIGHT";
+    // A separate opt-in: reading steps never asks for either write permission.
+    private static final String READ_STEPS = "android.permission.health.READ_STEPS";
     // Health Connect takes at most this many records in one insert.
     private static final int CHUNK = 500;
 
@@ -149,6 +160,82 @@ public class HealthConnectPlugin extends Plugin {
                 JSObject r = new JSObject();
                 r.put("granted", (got != null && got.containsAll(permissions())) || granted().containsAll(permissions()));
                 call.resolve(r);
+            } catch (Exception e) {
+                call.reject(e.getMessage(), "failed");
+            }
+        });
+    }
+
+    @PluginMethod
+    public void requestStepsPermission(PluginCall call) {
+        if (!"available".equals(sdkStatus())) {
+            call.reject("Health Connect is not available", "unavailable");
+            return;
+        }
+        ActivityResultContract<Set<String>, Set<String>> contract = PermissionController.createRequestPermissionResultContract(PROVIDER);
+        Intent intent = contract.createIntent(getContext(), Collections.singleton(READ_STEPS));
+        startActivityForResult(call, intent, "stepsPermissionResult");
+    }
+
+    @ActivityCallback
+    private void stepsPermissionResult(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            return;
+        }
+        worker.execute(() -> {
+            try {
+                JSObject response = new JSObject();
+                response.put("granted", granted().contains(READ_STEPS));
+                call.resolve(response);
+            } catch (Exception e) {
+                call.reject(e.getMessage(), "failed");
+            }
+        });
+    }
+
+    @PluginMethod
+    public void readSteps(PluginCall call) {
+        if (!"available".equals(sdkStatus())) {
+            call.reject("Health Connect is not available", "unavailable");
+            return;
+        }
+        worker.execute(() -> {
+            try {
+                if (!granted().contains(READ_STEPS)) {
+                    call.reject("Steps permission is not granted", "permission");
+                    return;
+                }
+                ZoneId zone = ZoneId.systemDefault();
+                LocalDateTime now = LocalDateTime.now(zone);
+                LocalDate first = now.toLocalDate().minusDays(29);
+                // Calendar periods respect local days (including DST), not fixed 24-hour slices.
+                // No origin filter: Health Connect resolves overlapping phone/watch sources.
+                AggregateGroupByPeriodRequest request = new AggregateGroupByPeriodRequest(
+                        Collections.singleton(StepsRecord.COUNT_TOTAL),
+                        TimeRangeFilter.between(first.atStartOfDay(), now),
+                        Period.ofDays(1), Collections.emptySet());
+                List<AggregationResultGroupedByPeriod> buckets = BuildersKt.runBlocking(
+                        EmptyCoroutineContext.INSTANCE,
+                        (scope, cont) -> client().aggregateGroupByPeriod(request, cont));
+                Map<LocalDate, Long> counts = new HashMap<>();
+                for (AggregationResultGroupedByPeriod bucket : buckets) {
+                    counts.put(bucket.getStartTime().toLocalDate(), bucket.getResult().get(StepsRecord.COUNT_TOTAL));
+                }
+                JSArray days = new JSArray();
+                for (LocalDate day = first; !day.isAfter(now.toLocalDate()); day = day.plusDays(1)) {
+                    JSObject entry = new JSObject();
+                    entry.put("date", day.toString());
+                    Long count = counts.get(day);
+                    entry.put("count", count == null ? JSONObject.NULL : count);
+                    days.put(entry);
+                }
+                JSObject response = new JSObject();
+                response.put("days", days);
+                response.put("zone", zone.getId());
+                response.put("readAt", System.currentTimeMillis());
+                call.resolve(response);
+            } catch (SecurityException e) {
+                call.reject(e.getMessage(), "permission");
             } catch (Exception e) {
                 call.reject(e.getMessage(), "failed");
             }

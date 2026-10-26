@@ -7,7 +7,7 @@
          "unsupported" before touching the library. -->
     <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
@@ -107,8 +107,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Gym check-in: scanning a membership QR/barcode with the camera. -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Health Connect (#200): write-only, asked for only when the user turns it on in Settings.
-         openGym writes finished workouts and weigh-ins and reads nothing back. -->
+    <!-- Health Connect: independent opt-ins for reading steps and writing workouts/weight.
+         No step writes, background reads, location or sensor tracking permission. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
     <uses-permission android:name="android.permission.health.WRITE_WEIGHT" />
 
