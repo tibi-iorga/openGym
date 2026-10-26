@@ -108,15 +108,15 @@ describe('the connection dot on Home', () => {
   })
 })
 
-// v1.3.11 icon sweep: one icon per concept. Every tab carries its name under the icon, Start is a
-// play button whether or not a session runs, and Tools has its own wrench.
+// Plus creates a workout; play resumes one. The icon-only plus keeps an accessible name.
 describe('the tab icons and labels', () => {
   const icon = el => el.querySelector('svg')?.getAttribute('data-icon')
   const label = el => el.querySelector('span:last-child').textContent
   it('labels every tab and uses one icon per concept', () => {
     act(() => { root.render(<TabBar onStart={() => {}} />) })
-    expect(tabs().map(icon)).toEqual(['house', 'calendar', 'play', 'chart', 'wrench'])
-    expect(tabs().map(label)).toEqual(['Home', 'Plan', 'Start', 'Stats', 'Tools'])
+    expect(tabs().map(icon)).toEqual(['house', 'calendar', 'plus', 'chart', 'wrench'])
+    expect(tabs().map(label)).toEqual(['Home', 'Plan', '', 'Stats', 'Tools'])
+    expect(tabs()[2].getAttribute('aria-label')).toBe('Start workout')
 
     act(() => { useStore.getState().update(s => { s.active = { id: 'a', entries: [], cur: 0 } }, false) })
     expect(icon(tabs()[2])).toBe('play')

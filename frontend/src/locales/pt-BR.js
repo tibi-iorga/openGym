@@ -4,7 +4,8 @@
 import pt from './pt.js'
 
 export const PT_BR_OVERRIDES = {
-  "Start empty workout": "Iniciar treino vazio",
+  "Start from a template": "Iniciar a partir de um modelo",
+  "Start an empty workout": "Iniciar treino vazio",
   "Add exercises as you go.": "Adicione exercícios durante o treino.",
   '{0} set brings an {1} with it. Switch on Effort per set in Settings to see it.': '{0} série traz um {1} junto. Ative “Esforço por série” nas Configurações para ver.',
   'Add to this set': 'Adicionar a esta série',

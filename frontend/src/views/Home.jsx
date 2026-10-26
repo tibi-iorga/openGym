@@ -145,7 +145,7 @@ export default function Home() {
       {!S.active && (
         <div className="home-start-actions">
           <Button variant="tinted" icon="plus" onClick={() => startFlow([])}>
-            {t('Start empty workout')}
+            {t('Start an empty workout')}
           </Button>
           <Button size="sm" variant="ghost" icon="swap" onClick={() => nav('/workout')}>
             {t('Choose a different workout')}

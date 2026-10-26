@@ -2,7 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
-  "Start empty workout": "Boş antrenman başlat",
+  "Start from a template": "Şablondan başlat",
+  "Start an empty workout": "Boş antrenman başlat",
   "Add exercises as you go.": "İlerledikçe egzersiz ekle.",
   ...TOOL_STRINGS,
   'Confirm': 'Onayla',

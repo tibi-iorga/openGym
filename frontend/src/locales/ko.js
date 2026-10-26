@@ -2,7 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
-  "Start empty workout": "빈 운동 시작",
+  "Start from a template": "템플릿으로 시작",
+  "Start an empty workout": "빈 운동 시작",
   "Add exercises as you go.": "운동하면서 종목을 추가하세요.",
   ...TOOL_STRINGS,
   'Confirm': '확인',

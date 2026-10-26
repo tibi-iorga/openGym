@@ -41,7 +41,7 @@ const door = () => [...host.querySelectorAll('button')].find(b => b.textContent.
 describe('Home — the way to the Start screen when a plan already owns today', () => {
   it('offers an explicit empty workout without selecting today’s routine', () => {
     setS(); mount()
-    const empty = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start empty workout')
+    const empty = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start an empty workout')
     expect(empty).toBeTruthy()
     act(() => empty.click())
     expect(startFlow).toHaveBeenCalledWith([])
@@ -50,7 +50,7 @@ describe('Home — the way to the Start screen when a plan already owns today', 
   it('does not offer a new empty workout while a session is active', () => {
     setS({ active: { id: 'a', name: 'Push', start: Date.now(), cur: 0, entries: [] } })
     mount()
-    expect(host.textContent).not.toContain('Start empty workout')
+    expect(host.textContent).not.toContain('Start an empty workout')
   })
   it('offers the chooser on a planned day alongside the routine shortcut', () => {
     setS(); mount()

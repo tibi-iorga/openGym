@@ -2,7 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
-  "Start empty workout": "खाली वर्कआउट शुरू करें",
+  "Start from a template": "टेम्पलेट से शुरू करें",
+  "Start an empty workout": "खाली वर्कआउट शुरू करें",
   "Add exercises as you go.": "वर्कआउट के दौरान व्यायाम जोड़ें।",
   ...TOOL_STRINGS,
   'Confirm': 'पुष्टि करें',

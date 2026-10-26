@@ -43,7 +43,7 @@ describe('workout chooser', () => {
       mount(setup)
       const before = structuredClone(useStore.getState().S)
       const buttons = [...host.querySelectorAll('button')]
-      expect(buttons[0].textContent.trim()).toBe('Start empty workout')
+      expect(buttons.map(b => b.textContent.trim())).toEqual(['Start an empty workout', 'Start from a template'])
       act(() => buttons[0].click())
       const after = useStore.getState().S
       expect(after.active).toMatchObject({ entries: [], routineIds: [] })
@@ -58,9 +58,33 @@ describe('workout chooser', () => {
 
   it('still starts the explicitly selected planned routine', () => {
     mount({ routines, week })
+    const templates = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start from a template')
+    act(() => templates.click())
+    expect(useStore.getState().S.active).toBeNull()
     const button = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start Push')
     act(() => button.click())
     expect(useStore.getState().S.active.routineIds).toEqual(['push'])
     expect(useStore.getState().S.active.entries.map(e => e.id)).toEqual(['0025'])
+  })
+
+  it('can close the template choices without starting a session', () => {
+    mount({ routines, week })
+    const templates = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start from a template')
+    expect(host.textContent).not.toContain('Start Push')
+    act(() => templates.click())
+    expect(host.textContent).toContain('Start Push')
+    act(() => templates.click())
+    expect(host.textContent).not.toContain('Start Push')
+    expect(useStore.getState().S.active).toBeNull()
+  })
+
+  it('explains an empty template list and keeps empty start available', () => {
+    mount({ routines: [], week: {} })
+    const templates = [...host.querySelectorAll('button')].find(b => b.textContent.trim() === 'Start from a template')
+    act(() => templates.click())
+    expect(host.textContent).toContain('No routines yet.')
+    expect(host.textContent).toContain('Plan')
+    expect(host.textContent).toContain('Start an empty workout')
+    expect(useStore.getState().S.active).toBeNull()
   })
 })

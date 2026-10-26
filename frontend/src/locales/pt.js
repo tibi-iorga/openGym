@@ -2,7 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
-  "Start empty workout": "Iniciar treino vazio",
+  "Start from a template": "Iniciar a partir de um modelo",
+  "Start an empty workout": "Iniciar treino vazio",
   "Add exercises as you go.": "Adiciona exercícios à medida que treinas.",
   ...TOOL_STRINGS,
   'Confirm': 'Confirmar',

@@ -2,7 +2,8 @@
 import { TOOL_STRINGS } from '../lib/tool-strings.js'
 
 export default {
-  "Start empty workout": "Üres edzés indítása",
+  "Start from a template": "Indítás sablonból",
+  "Start an empty workout": "Üres edzés indítása",
   "Add exercises as you go.": "Adj hozzá gyakorlatokat edzés közben.",
   ...TOOL_STRINGS,
   // --- generic ---
